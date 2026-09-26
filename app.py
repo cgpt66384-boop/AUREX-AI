@@ -5,19 +5,21 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 # =========================================================
-# AUREX AI — API-KEY-FREE INVESTMENT RESEARCH LAB
+# AUREX AI
+# Created by Anshuman Dash
+# API-KEY-FREE INVESTMENT RESEARCH PROTOTYPE
 # =========================================================
 
 st.set_page_config(
-    page_title="AUREX AI",
+    page_title="AUREX AI — Anshuman Dash",
     page_icon="◈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# -------------------------
+# =========================================================
 # CSS
-# -------------------------
+# =========================================================
 
 st.markdown("""
 <style>
@@ -58,13 +60,21 @@ section[data-testid="stSidebar"] * {
     margin-top: -5px;
 }
 
+.creator {
+    color: #8fa9d9;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
 .hero {
     padding: 30px;
     border-radius: 24px;
     background:
-        linear-gradient(135deg,
-        rgba(21,29,52,0.95),
-        rgba(8,11,20,0.95));
+        linear-gradient(
+            135deg,
+            rgba(21,29,52,0.95),
+            rgba(8,11,20,0.95)
+        );
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 20px 70px rgba(0,0,0,0.35);
     margin-bottom: 25px;
@@ -130,6 +140,24 @@ section[data-testid="stSidebar"] * {
     font-size: 12px;
 }
 
+.creator-card {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(70,130,255,0.07);
+    border: 1px solid rgba(70,130,255,0.15);
+}
+
+.creator-name {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.creator-role {
+    font-size: 12px;
+    color: #8290a7;
+}
+
 .disclaimer {
     background: rgba(255,180,0,0.06);
     border: 1px solid rgba(255,180,0,0.18);
@@ -150,7 +178,7 @@ div[data-testid="stMetric"] {
 
 
 # =========================================================
-# DEMO DATA ENGINE
+# DEMO DATA
 # =========================================================
 
 np.random.seed(42)
@@ -195,27 +223,60 @@ stocks = {
 }
 
 
+# =========================================================
+# ANALYTICAL FUNCTIONS
+# =========================================================
+
 def generate_prices(base_price, periods=180):
-    returns = np.random.normal(0.0007, 0.018, periods)
-    prices = base_price * np.exp(np.cumsum(returns))
+    returns = np.random.normal(
+        0.0007,
+        0.018,
+        periods
+    )
+
+    prices = base_price * np.exp(
+        np.cumsum(returns)
+    )
+
     return prices
 
 
 def technical_analysis(prices):
+
     series = pd.Series(prices)
 
     sma20 = series.rolling(20).mean().iloc[-1]
     sma50 = series.rolling(50).mean().iloc[-1]
 
     delta = series.diff()
-    gain = delta.clip(lower=0).rolling(14).mean()
-    loss = (-delta.clip(upper=0)).rolling(14).mean()
+
+    gain = (
+        delta
+        .clip(lower=0)
+        .rolling(14)
+        .mean()
+    )
+
+    loss = (
+        -delta
+        .clip(upper=0)
+        .rolling(14)
+        .mean()
+    )
 
     rs = gain / loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
+
+    rsi = 100 - (
+        100 / (1 + rs)
+    )
+
     rsi_value = float(rsi.iloc[-1])
 
-    volatility = float(series.pct_change().std() * np.sqrt(252) * 100)
+    volatility = float(
+        series.pct_change().std()
+        * np.sqrt(252)
+        * 100
+    )
 
     return {
         "sma20": sma20,
@@ -226,25 +287,42 @@ def technical_analysis(prices):
 
 
 def investment_dna(data, tech):
-    growth = min(max(data["revenue_growth"] * 3.5, 0), 100)
+
+    growth = min(
+        max(data["revenue_growth"] * 3.5, 0),
+        100
+    )
 
     quality = min(
-        max((data["roe"] * 3) + (30 if data["debt"] < 0.3 else 15), 0),
+        max(
+            (data["roe"] * 3)
+            + (30 if data["debt"] < 0.3 else 15),
+            0
+        ),
         100
     )
 
     momentum = min(
-        max(50 + (tech["rsi"] - 50) * 1.5, 0),
+        max(
+            50 + (tech["rsi"] - 50) * 1.5,
+            0
+        ),
         100
     )
 
     valuation = min(
-        max(100 - data["pe"] * 2.0, 0),
+        max(
+            100 - data["pe"] * 2.0,
+            0
+        ),
         100
     )
 
     risk = min(
-        max(tech["volatility"] * 3, 0),
+        max(
+            tech["volatility"] * 3,
+            0
+        ),
         100
     )
 
@@ -261,6 +339,7 @@ def investment_dna(data, tech):
 
 
 def create_chart(prices, title):
+
     fig = go.Figure()
 
     fig.add_trace(
@@ -289,8 +368,15 @@ def create_chart(prices, title):
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h")
+        margin=dict(
+            l=20,
+            r=20,
+            t=50,
+            b=20
+        ),
+        legend=dict(
+            orientation="h"
+        )
     )
 
     return fig
@@ -304,7 +390,18 @@ with st.sidebar:
 
     st.markdown("## ◈ AUREX AI")
 
-    st.caption("Autonomous Universal Research & EXecution Intelligence")
+    st.caption(
+        "Autonomous Universal Research & EXecution Intelligence"
+    )
+
+    st.markdown("""
+    <div class="creator-card">
+        <div class="creator-name">Anshuman Dash</div>
+        <div class="creator-role">
+            Creator & Developer of AUREX AI
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
 
@@ -333,23 +430,34 @@ with st.sidebar:
     st.divider()
 
     st.caption(
-        "AUREX AI is a research prototype. "
-        "Demo data is used in this version."
+        "AUREX AI is a research prototype."
     )
 
 
 # =========================================================
-# HEADER
+# MAIN HERO
 # =========================================================
 
 st.markdown("""
 <div class="hero">
-    <span class="badge">AUREX AI • RESEARCH OS</span>
-    <h1>Financial Intelligence, Reimagined.</h1>
+
+    <span class="badge">
+        AUREX AI • RESEARCH OS
+    </span>
+
+    <h1>
+        Financial Intelligence, Reimagined.
+    </h1>
+
     <p>
-        Explore markets, companies, strategies, portfolios and risk
-        through one analytical workspace.
+        Explore markets, companies, strategies,
+        portfolios and risk through one analytical workspace.
     </p>
+
+    <div class="creator">
+        Created & Developed by <b>Anshuman Dash</b>
+    </div>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -362,7 +470,7 @@ if page == "◈ Command Center":
 
     st.markdown("## ◈ Command Center")
 
-    st.markdown(
+    st.write(
         "A unified workspace for investment research and market analysis."
     )
 
@@ -371,36 +479,60 @@ if page == "◈ Command Center":
     with c1:
         st.markdown("""
         <div class="metric-card">
-        <div class="metric-title">Research Engine</div>
-        <div class="metric-value">ONLINE</div>
-        <div class="metric-small">Core analytical modules active</div>
+            <div class="metric-title">
+                Research Engine
+            </div>
+            <div class="metric-value">
+                ONLINE
+            </div>
+            <div class="metric-small">
+                Core analytical modules active
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
     with c2:
         st.markdown("""
         <div class="metric-card">
-        <div class="metric-title">API Dependency</div>
-        <div class="metric-value">ZERO</div>
-        <div class="metric-small">V1 operates without API keys</div>
+            <div class="metric-title">
+                API Dependency
+            </div>
+            <div class="metric-value">
+                ZERO
+            </div>
+            <div class="metric-small">
+                V1 operates without API keys
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
     with c3:
         st.markdown("""
         <div class="metric-card">
-        <div class="metric-title">Research Modules</div>
-        <div class="metric-value">8</div>
-        <div class="metric-small">Integrated analytical areas</div>
+            <div class="metric-title">
+                Research Modules
+            </div>
+            <div class="metric-value">
+                8
+            </div>
+            <div class="metric-small">
+                Integrated analytical areas
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
     with c4:
         st.markdown("""
         <div class="metric-card">
-        <div class="metric-title">Mode</div>
-        <div class="metric-value">LAB</div>
-        <div class="metric-small">Research & simulation environment</div>
+            <div class="metric-title">
+                Creator
+            </div>
+            <div class="metric-value">
+                AD
+            </div>
+            <div class="metric-small">
+                Anshuman Dash
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -411,25 +543,40 @@ if page == "◈ Command Center":
         list(stocks.keys())
     )
 
-    if st.button("🚀 Launch Research Mission", use_container_width=True):
+    if st.button(
+        "🚀 Launch Research Mission",
+        use_container_width=True
+    ):
 
         data = stocks[selected]
-        prices = generate_prices(data["price"])
-        tech = technical_analysis(prices)
-        dna = investment_dna(data, tech)
+
+        prices = generate_prices(
+            data["price"]
+        )
+
+        tech = technical_analysis(
+            prices
+        )
+
+        dna = investment_dna(
+            data,
+            tech
+        )
 
         st.session_state["selected"] = selected
         st.session_state["prices"] = prices
         st.session_state["tech"] = tech
         st.session_state["dna"] = dna
 
-        st.success(f"Research mission launched for {selected}")
+        st.success(
+            f"Research mission launched for {selected}"
+        )
 
     st.markdown("""
     <div class="disclaimer">
-    ⚠️ AUREX AI is an analytical research prototype. It does not
-    guarantee returns, predict markets with certainty, or constitute
-    personalized financial advice.
+        ⚠️ AUREX AI is an analytical research prototype.
+        It does not guarantee returns, predict markets with certainty,
+        or constitute personalized financial advice.
     </div>
     """, unsafe_allow_html=True)
 
@@ -448,66 +595,101 @@ elif page == "🧠 AI Research Lab":
     )
 
     data = stocks[selected]
-    prices = generate_prices(data["price"])
-    tech = technical_analysis(prices)
+
+    prices = generate_prices(
+        data["price"]
+    )
+
+    tech = technical_analysis(
+        prices
+    )
 
     question = st.text_area(
         "Research Question",
-        placeholder="Example: What are the major factors I should investigate before considering this company?"
+        placeholder=(
+            "Example: What are the major factors "
+            "I should investigate before considering "
+            "this company?"
+        )
     )
 
-    if st.button("🧠 Generate Research Report", use_container_width=True):
+    if st.button(
+        "🧠 Generate Research Report",
+        use_container_width=True
+    ):
 
         st.markdown("### Research Intelligence")
 
         st.markdown(f"""
         <div class="research-box">
-        <h3>{selected}</h3>
-        <p>
-        Sector: <b>{data["sector"]}</b><br>
-        Reference price: <b>₹{data["price"]:,.2f}</b>
-        </p>
+
+            <span class="badge">
+                RESEARCH TARGET
+            </span>
+
+            <h3>{selected}</h3>
+
+            <p>
+                Sector: <b>{data["sector"]}</b><br>
+                Reference price:
+                <b>₹{data["price"]:,.2f}</b>
+            </p>
+
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown("### 📌 Business Snapshot")
 
         st.write(
-            f"{selected} is represented in this prototype as a "
-            f"{data['sector']} company. Key research variables include "
-            f"growth, profitability, valuation, leverage and market behaviour."
+            f"{selected} is represented in this prototype "
+            f"as a {data['sector']} company. Key research "
+            "variables include growth, profitability, valuation, "
+            "leverage and market behaviour."
         )
 
         st.markdown("### 📈 Market Behaviour")
 
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("RSI", f"{tech['rsi']:.1f}")
-        col2.metric("Volatility", f"{tech['volatility']:.1f}%")
-        col3.metric("20D Average", f"₹{tech['sma20']:,.2f}")
+        col1.metric(
+            "RSI",
+            f"{tech['rsi']:.1f}"
+        )
+
+        col2.metric(
+            "Volatility",
+            f"{tech['volatility']:.1f}%"
+        )
+
+        col3.metric(
+            "20D Average",
+            f"₹{tech['sma20']:,.2f}"
+        )
 
         st.markdown("### 🐂 Bull Scenario")
 
         st.write(
-            "Potential upside drivers could include stronger revenue growth, "
-            "improving profitability, favourable sector conditions and "
-            "positive changes in investor expectations."
+            "Potential upside drivers could include stronger "
+            "revenue growth, improving profitability, favourable "
+            "sector conditions and positive changes in investor "
+            "expectations."
         )
 
         st.markdown("### ⚖️ Base Scenario")
 
         st.write(
-            "A continuation scenario would depend on whether the company "
-            "maintains its current operating performance while valuation "
-            "and market conditions remain broadly stable."
+            "A continuation scenario would depend on whether "
+            "the company maintains its current operating "
+            "performance while valuation and market conditions "
+            "remain broadly stable."
         )
 
         st.markdown("### 🐻 Bear Scenario")
 
         st.write(
-            "Potential downside factors could include slowing growth, "
-            "margin pressure, rising leverage, weaker industry conditions "
-            "or a decline in market sentiment."
+            "Potential downside factors could include slowing "
+            "growth, margin pressure, rising leverage, weaker "
+            "industry conditions or a decline in market sentiment."
         )
 
         st.markdown("### 🔍 Questions Worth Investigating")
@@ -539,18 +721,42 @@ elif page == "📊 Market Intelligence":
     )
 
     data = stocks[selected]
-    prices = generate_prices(data["price"])
-    tech = technical_analysis(prices)
+
+    prices = generate_prices(
+        data["price"]
+    )
+
+    tech = technical_analysis(
+        prices
+    )
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Reference Price", f"₹{data['price']:,.2f}")
-    c2.metric("Sector", data["sector"])
-    c3.metric("P/E", f"{data['pe']:.1f}")
-    c4.metric("Revenue Growth", f"{data['revenue_growth']:.1f}%")
+    c1.metric(
+        "Reference Price",
+        f"₹{data['price']:,.2f}"
+    )
+
+    c2.metric(
+        "Sector",
+        data["sector"]
+    )
+
+    c3.metric(
+        "P/E",
+        f"{data['pe']:.1f}"
+    )
+
+    c4.metric(
+        "Revenue Growth",
+        f"{data['revenue_growth']:.1f}%"
+    )
 
     st.plotly_chart(
-        create_chart(prices, f"{selected} — Simulated Price History"),
+        create_chart(
+            prices,
+            f"{selected} — Simulated Price History"
+        ),
         use_container_width=True
     )
 
@@ -592,41 +798,68 @@ elif page == "📈 Technical Laboratory":
     )
 
     data = stocks[selected]
-    prices = generate_prices(data["price"])
-    tech = technical_analysis(prices)
+
+    prices = generate_prices(
+        data["price"]
+    )
+
+    tech = technical_analysis(
+        prices
+    )
 
     st.plotly_chart(
-        create_chart(prices, f"{selected} Technical Chart"),
+        create_chart(
+            prices,
+            f"{selected} Technical Chart"
+        ),
         use_container_width=True
     )
 
     a, b, c = st.columns(3)
 
-    a.metric("RSI", f"{tech['rsi']:.1f}")
-    b.metric("20D MA", f"₹{tech['sma20']:,.2f}")
-    c.metric("50D MA", f"₹{tech['sma50']:,.2f}")
+    a.metric(
+        "RSI",
+        f"{tech['rsi']:.1f}"
+    )
+
+    b.metric(
+        "20D MA",
+        f"₹{tech['sma20']:,.2f}"
+    )
+
+    c.metric(
+        "50D MA",
+        f"₹{tech['sma50']:,.2f}"
+    )
 
     st.markdown("### Interpretation")
 
     if tech["rsi"] > 70:
+
         st.info(
-            "RSI is relatively high. This indicates strong recent price "
-            "momentum; it does not by itself predict a future decline."
+            "RSI is relatively high. This indicates strong "
+            "recent price momentum; it does not by itself "
+            "predict a future decline."
         )
+
     elif tech["rsi"] < 30:
+
         st.info(
-            "RSI is relatively low. This indicates weak recent momentum; "
-            "it does not by itself predict a future rebound."
+            "RSI is relatively low. This indicates weak "
+            "recent momentum; it does not by itself predict "
+            "a future rebound."
         )
+
     else:
+
         st.info(
-            "RSI is in a middle range, indicating neither an extreme "
-            "high nor extreme low based on this indicator."
+            "RSI is in a middle range, indicating neither "
+            "an extreme high nor extreme low based on this indicator."
         )
 
 
 # =========================================================
-# PORTFOLIO
+# PORTFOLIO INTELLIGENCE
 # =========================================================
 
 elif page == "💼 Portfolio Intelligence":
@@ -649,9 +882,14 @@ elif page == "💼 Portfolio Intelligence":
             step=5
         )
 
-    total = sum(portfolio.values())
+    total = sum(
+        portfolio.values()
+    )
 
-    st.metric("Total Allocation", f"{total}%")
+    st.metric(
+        "Total Allocation",
+        f"{total}%"
+    )
 
     if total > 0:
 
@@ -677,23 +915,33 @@ elif page == "💼 Portfolio Intelligence":
             height=450
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
         st.markdown("### Portfolio Structure")
 
         for stock, weight in normalized.items():
-            st.write(f"**{stock}** — {weight:.1f}%")
 
-        largest = max(normalized, key=normalized.get)
+            st.write(
+                f"**{stock}** — {weight:.1f}%"
+            )
+
+        largest = max(
+            normalized,
+            key=normalized.get
+        )
 
         st.info(
-            f"Largest allocation: {largest} at {normalized[largest]:.1f}%. "
+            f"Largest allocation: {largest} at "
+            f"{normalized[largest]:.1f}%. "
             "Consider how concentration affects portfolio risk."
         )
 
 
 # =========================================================
-# STRATEGY LAB
+# STRATEGY LABORATORY
 # =========================================================
 
 elif page == "🧪 Strategy Laboratory":
@@ -701,131 +949,4 @@ elif page == "🧪 Strategy Laboratory":
     st.markdown("## 🧪 Strategy Laboratory")
 
     st.write(
-        "Test a simple historical strategy using simulated data."
-    )
-
-    selected = st.selectbox(
-        "Asset",
-        list(stocks.keys())
-    )
-
-    starting_capital = st.number_input(
-        "Starting Capital",
-        min_value=10000,
-        max_value=10000000,
-        value=100000,
-        step=10000
-    )
-
-    fast_window = st.slider(
-        "Fast Moving Average",
-        5,
-        50,
-        20
-    )
-
-    slow_window = st.slider(
-        "Slow Moving Average",
-        20,
-        150,
-        50
-    )
-
-    if fast_window >= slow_window:
-        st.warning("Fast moving average must be smaller than slow moving average.")
-
-    else:
-
-        data = stocks[selected]
-        prices = generate_prices(data["price"], 500)
-
-        df = pd.DataFrame({"Price": prices})
-
-        df["Fast"] = df["Price"].rolling(fast_window).mean()
-        df["Slow"] = df["Price"].rolling(slow_window).mean()
-
-        df["Signal"] = np.where(
-            df["Fast"] > df["Slow"],
-            1,
-            0
-        )
-
-        df["Returns"] = df["Price"].pct_change()
-
-        df["Strategy"] = df["Returns"] * df["Signal"].shift(1)
-
-        df["Equity"] = (
-            1 + df["Strategy"].fillna(0)
-        ).cumprod() * starting_capital
-
-        final_value = df["Equity"].iloc[-1]
-
-        total_return = (
-            (final_value / starting_capital) - 1
-        ) * 100
-
-        max_drawdown = (
-            df["Equity"] / df["Equity"].cummax() - 1
-        ).min() * 100
-
-        c1, c2, c3 = st.columns(3)
-
-        c1.metric(
-            "Ending Value",
-            f"₹{final_value:,.0f}"
-        )
-
-        c2.metric(
-            "Historical Return",
-            f"{total_return:.2f}%"
-        )
-
-        c3.metric(
-            "Max Drawdown",
-            f"{max_drawdown:.2f}%"
-        )
-
-        fig = go.Figure()
-
-        fig.add_trace(
-            go.Scatter(
-                y=df["Equity"],
-                mode="lines",
-                name="Strategy Equity"
-            )
-        )
-
-        fig.update_layout(
-            title="Historical Strategy Simulation",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=430
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
-        st.warning(
-            "This is a historical simulation using generated demonstration "
-            "data. It is not evidence of future performance."
-        )
-
-
-# =========================================================
-# RISK OBSERVATORY
-# =========================================================
-
-elif page == "⚠️ Risk Observatory":
-
-    st.markdown("## ⚠️ Risk Observatory")
-
-    selected = st.selectbox(
-        "Asset",
-        list(stocks.keys())
-    )
-
-    data = stocks[selected]
-    prices = gen
+        "Test a simpl
