@@ -2,131 +2,70 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from datetime import datetime
 
 # =========================================================
 # PAGE CONFIG
 # =========================================================
 
 st.set_page_config(
-    page_title="AUREX AI — Anshuman Dash",
+    page_title="AUREX AI - Anshuman Dash",
     page_icon="◈",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # =========================================================
-# CUSTOM CSS
+# CSS
 # =========================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #070b14;
+        color: white;
+    }
 
-.stApp {
-    background:
-        radial-gradient(circle at top left, #101d3a 0%, #070b14 35%, #05070c 100%);
-    color: #f5f7fa;
-}
+    [data-testid="stSidebar"] {
+        background-color: #090d17;
+    }
 
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-}
+    .hero {
+        padding: 35px;
+        border-radius: 20px;
+        background-color: #101a2e;
+        border: 1px solid #263b60;
+        margin-bottom: 25px;
+    }
 
-[data-testid="stSidebar"] {
-    background: #070b14;
-    border-right: 1px solid #1d2940;
-}
+    .card {
+        padding: 20px;
+        border-radius: 16px;
+        background-color: #0f1726;
+        border: 1px solid #243653;
+        margin-bottom: 15px;
+    }
 
-[data-testid="stSidebar"] * {
-    color: #e8edf5;
-}
+    .creator {
+        padding: 15px;
+        border-radius: 12px;
+        background-color: #111d31;
+        border: 1px solid #294064;
+    }
 
-.hero {
-    padding: 35px;
-    border-radius: 25px;
-    background:
-        linear-gradient(135deg, rgba(20,35,70,0.95), rgba(7,11,20,0.98));
-    border: 1px solid #26385b;
-    box-shadow: 0 0 40px rgba(0, 120, 255, 0.10);
-    margin-bottom: 25px;
-}
-
-.hero-title {
-    font-size: 52px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    margin-bottom: 5px;
-}
-
-.hero-subtitle {
-    color: #8fa7c9;
-    font-size: 18px;
-}
-
-.creator {
-    padding: 18px;
-    border-radius: 18px;
-    background: rgba(18, 29, 50, 0.8);
-    border: 1px solid #26385b;
-    margin-top: 20px;
-}
-
-.card {
-    padding: 22px;
-    border-radius: 18px;
-    background: rgba(13, 20, 34, 0.90);
-    border: 1px solid #22314d;
-    margin-bottom: 18px;
-}
-
-.metric-card {
-    padding: 20px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #101c31, #0a101c);
-    border: 1px solid #26385b;
-}
-
-.section-title {
-    font-size: 30px;
-    font-weight: 700;
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-
-.small-text {
-    color: #8fa7c9;
-    font-size: 14px;
-}
-
-.warning {
-    padding: 18px;
-    border-radius: 15px;
-    background: rgba(75, 53, 10, 0.35);
-    border: 1px solid #70551b;
-    color: #e8d18b;
-}
-
-.footer {
-    text-align: center;
-    color: #71809b;
-    padding: 30px;
-    border-top: 1px solid #1d2940;
-    margin-top: 40px;
-}
-
-</style>
-""", unsafe_allow_html=True)
+    .footer {
+        text-align: center;
+        padding: 30px;
+        color: #71809b;
+        margin-top: 40px;
+        border-top: 1px solid #1d2940;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================================================
-# SESSION STATE
-# =========================================================
-
-if "analysis_history" not in st.session_state:
-    st.session_state.analysis_history = []
-
-# =========================================================
-# DEMO MARKET DATA
+# DEMO DATA
 # =========================================================
 
 stocks = {
@@ -164,22 +103,24 @@ stocks = {
 # FUNCTIONS
 # =========================================================
 
-def generate_prices(base_price=100, periods=180):
+def generate_prices(base_price, periods=180):
+
     np.random.seed(42)
 
     returns = np.random.normal(
-        loc=0.0005,
-        scale=0.018,
-        size=periods
+        0.0005,
+        0.018,
+        periods
     )
 
     prices = [base_price]
 
-    for r in returns:
-        prices.append(prices[-1] * (1 + r))
+    for value in returns:
+        new_price = prices[-1] * (1 + value)
+        prices.append(new_price)
 
     dates = pd.date_range(
-        end=datetime.today(),
+        end=pd.Timestamp.today(),
         periods=periods + 1
     )
 
@@ -189,22 +130,22 @@ def generate_prices(base_price=100, periods=180):
     })
 
 
-def technical_analysis(df):
+def calculate_indicators(df):
 
     data = df.copy()
 
     data["MA20"] = data["Price"].rolling(20).mean()
     data["MA50"] = data["Price"].rolling(50).mean()
 
-    delta = data["Price"].diff()
+    difference = data["Price"].diff()
 
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
+    gain = difference.clip(lower=0)
+    loss = -difference.clip(upper=0)
 
-    avg_gain = gain.rolling(14).mean()
-    avg_loss = loss.rolling(14).mean()
+    average_gain = gain.rolling(14).mean()
+    average_loss = loss.rolling(14).mean()
 
-    rs = avg_gain / avg_loss.replace(0, np.nan)
+    rs = average_gain / average_loss.replace(0, np.nan)
 
     data["RSI"] = 100 - (100 / (1 + rs))
 
@@ -228,28 +169,7 @@ def technical_analysis(df):
     return data, latest_price, ma20, ma50, rsi, trend, momentum
 
 
-def investment_dna(price, change, sector):
-
-    if change > 3:
-        momentum = "High Momentum"
-    elif change > 0:
-        momentum = "Positive Momentum"
-    else:
-        momentum = "Weak Momentum"
-
-    if sector == "Technology":
-        style = "Growth / Innovation"
-    elif sector == "Banking":
-        style = "Financial / Value"
-    elif sector == "Energy":
-        style = "Cyclical / Commodity"
-    else:
-        style = "Mixed"
-
-    return momentum, style
-
-
-def create_chart(df, title):
+def price_chart(df, title):
 
     fig = go.Figure()
 
@@ -285,10 +205,7 @@ def create_chart(df, title):
     fig.update_layout(
         title=title,
         template="plotly_dark",
-        height=480,
-        margin=dict(l=20, r=20, t=50, b=20),
-        xaxis_title="Date",
-        yaxis_title="Price"
+        height=450
     )
 
     return fig
@@ -298,11 +215,10 @@ def create_chart(df, title):
 # SIDEBAR
 # =========================================================
 
-st.sidebar.markdown("## ◈ AUREX AI")
+st.sidebar.title("◈ AUREX AI")
 
-st.sidebar.markdown(
-    "<div class='small-text'>Autonomous Universal Research & EXecution Intelligence</div>",
-    unsafe_allow_html=True
+st.sidebar.caption(
+    "Autonomous Universal Research & EXecution Intelligence"
 )
 
 st.sidebar.markdown("---")
@@ -327,8 +243,7 @@ st.sidebar.markdown(
     """
     <div class="creator">
     <b>Creator & Developer</b><br><br>
-    Anshuman Dash<br>
-    <span class="small-text">AUREX AI</span>
+    Anshuman Dash
     </div>
     """,
     unsafe_allow_html=True
@@ -343,101 +258,97 @@ if page == "◈ Command Center":
     st.markdown(
         """
         <div class="hero">
-            <div class="hero-title">◈ AUREX AI</div>
-            <div class="hero-subtitle">
-                Autonomous Universal Research & EXecution Intelligence
-            </div>
-
-            <div class="creator">
-                Created & Developed by <b>Anshuman Dash</b>
-            </div>
+        <h1>◈ AUREX AI</h1>
+        <h3>Autonomous Universal Research & EXecution Intelligence</h3>
+        <br>
+        Created & Developed by <b>Anshuman Dash</b>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        "<div class='section-title'>AI Investment Research Command Center</div>",
-        unsafe_allow_html=True
-    )
+    st.header("AI Investment Research Command Center")
 
     st.write(
-        """
-        AUREX AI is a futuristic investment research platform designed
-        to analyze markets, technical patterns, portfolio risk and
-        strategy behavior in one interface.
-        """
+        "AUREX AI is a futuristic investment research platform "
+        "for studying markets, technical patterns, portfolio risk "
+        "and trading strategies."
     )
 
     st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric(
-        "Market Status",
-        "ACTIVE"
-    )
-
-    col2.metric(
-        "Assets Tracked",
-        len(stocks)
-    )
-
-    col3.metric(
-        "AI Modules",
-        "8"
-    )
-
-    col4.metric(
-        "Data Mode",
-        "DEMO"
-    )
+    col1.metric("Market Status", "ACTIVE")
+    col2.metric("Assets Tracked", len(stocks))
+    col3.metric("AI Modules", "8")
+    col4.metric("Data Mode", "DEMO")
 
     st.markdown("---")
 
-    st.markdown("### 🚀 AUREX AI Capabilities")
+    st.subheader("AUREX AI Capabilities")
 
-    c1, c2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-    with c1:
+    with col1:
 
         st.markdown(
             """
             <div class="card">
             <h3>🧠 AI Research</h3>
-            Analyze companies, sectors, trends and investment ideas.
-            </div>
-
-            <div class="card">
-            <h3>📈 Technical Intelligence</h3>
-            Study moving averages, RSI and price behavior.
-            </div>
-
-            <div class="card">
-            <h3>💼 Portfolio Intelligence</h3>
-            Understand portfolio allocation and basic risk exposure.
+            Research companies, sectors and market ideas.
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    with c2:
+        st.markdown(
+            """
+            <div class="card">
+            <h3>📈 Technical Intelligence</h3>
+            Analyze price trends, moving averages and RSI.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <div class="card">
+            <h3>💼 Portfolio Intelligence</h3>
+            Study portfolio allocation.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col2:
 
         st.markdown(
             """
             <div class="card">
             <h3>🧪 Strategy Laboratory</h3>
-            Experiment with historical strategy simulations.
+            Test simple historical strategies.
             </div>
+            """,
+            unsafe_allow_html=True
+        )
 
+        st.markdown(
+            """
             <div class="card">
             <h3>⚠️ Risk Observatory</h3>
-            Explore volatility and potential risk factors.
+            Examine volatility and drawdown.
             </div>
+            """,
+            unsafe_allow_html=True
+        )
 
+        st.markdown(
+            """
             <div class="card">
             <h3>🔬 Investment DNA</h3>
-            Generate a simple profile of asset characteristics.
+            Generate an asset profile.
             </div>
             """,
             unsafe_allow_html=True
@@ -449,18 +360,18 @@ if page == "◈ Command Center":
 
 elif page == "🧠 AI Research Lab":
 
-    st.markdown("## 🧠 AI Research Lab")
+    st.header("🧠 AI Research Lab")
 
     st.write(
-        "Use this prototype research engine to generate a structured investment research report."
+        "Generate a simple research report using the demo market data."
     )
 
-    company = st.selectbox(
+    selected = st.selectbox(
         "Select Asset",
         list(stocks.keys())
     )
 
-    research_type = st.selectbox(
+    mode = st.selectbox(
         "Research Mode",
         [
             "Full Research",
@@ -472,24 +383,20 @@ elif page == "🧠 AI Research Lab":
 
     if st.button("🚀 Run AI Research"):
 
-        data = stocks[company]
+        data = stocks[selected]
 
-        st.session_state.analysis_history.append(
-            f"{company} — {research_type}"
-        )
-
-        st.success("Research completed using demo data.")
+        st.success("Research completed.")
 
         col1, col2, col3 = st.columns(3)
 
         col1.metric(
             "Price",
-            f"₹{data['price']}"
+            f"₹{data['price']:.2f}"
         )
 
         col2.metric(
             "Daily Change",
-            f"{data['change']}%"
+            f"{data['change']:.2f}%"
         )
 
         col3.metric(
@@ -497,40 +404,58 @@ elif page == "🧠 AI Research Lab":
             data["sector"]
         )
 
-        st.markdown("### Research Summary")
+        st.subheader("Research Report")
 
-        if research_type == "Growth Analysis":
-
-            st.write(
-                f"""
-                **Asset:** {company}
-
-                **Sector:** {data['sector']}
-
-                The demo dataset indicates a market asset that can be
-                studied through price momentum, sector behavior,
-                volume and longer-term trend analysis.
-                """
-            )
-
-        elif research_type == "Risk Analysis":
+        if mode == "Full Research":
 
             st.write(
-                f"""
-                **Asset:** {company}
-
-                Risk should be evaluated using volatility,
-                drawdowns, concentration, liquidity and market conditions.
-
-                Current demo volume:
-                **{data['volume']:,}**
-                """
+                f"Asset: {selected}"
             )
 
-        elif research_type == "Technical Analysis":
+            st.write(
+                f"Sector: {data['sector']}"
+            )
 
-            df = generate_prices(data["price"])
-            result = technical_analysis(df)
+            st.write(
+                f"Market Capitalization: {data['market_cap']}"
+            )
+
+            st.write(
+                f"Trading Volume: {data['volume']:,}"
+            )
+
+            st.write(
+                "The asset can be studied using price behavior, "
+                "technical indicators, volume, risk and portfolio analysis."
+            )
+
+        elif mode == "Growth Analysis":
+
+            st.write(
+                f"{selected} belongs to the {data['sector']} sector."
+            )
+
+            st.write(
+                "Growth research should consider revenue growth, "
+                "earnings, valuation, competition and industry trends."
+            )
+
+        elif mode == "Risk Analysis":
+
+            st.write(
+                f"Current demo trading volume: {data['volume']:,}"
+            )
+
+            st.write(
+                "Risk analysis should consider volatility, drawdowns, "
+                "liquidity, concentration and market conditions."
+            )
+
+        else:
+
+            df = generate_prices(
+                data["price"]
+            )
 
             (
                 processed,
@@ -540,47 +465,26 @@ elif page == "🧠 AI Research Lab":
                 rsi,
                 trend,
                 momentum
-            ) = result
+            ) = calculate_indicators(df)
 
             st.write(
-                f"""
-                **Trend:** {trend}
+                f"Trend: {trend}"
+            )
 
-                **RSI:** {rsi:.2f}
+            st.write(
+                f"RSI: {rsi:.2f}"
+            )
 
-                **Momentum:** {momentum}
-
-                **20-day moving average:** ₹{ma20:.2f}
-
-                **50-day moving average:** ₹{ma50:.2f}
-                """
+            st.write(
+                f"Momentum: {momentum}"
             )
 
             st.plotly_chart(
-                create_chart(
+                price_chart(
                     processed,
-                    f"{company} Technical Analysis"
+                    f"{selected} Technical Analysis"
                 ),
                 use_container_width=True
-            )
-
-        else:
-
-            st.write(
-                f"""
-                AUREX AI Research Report for **{company}**
-
-                Sector: **{data['sector']}**
-
-                Current demo price: **₹{data['price']}**
-
-                Daily movement: **{data['change']}%**
-
-                Market capitalization: **{data['market_cap']}**
-
-                The asset can be investigated using technical,
-                fundamental, risk and portfolio analysis.
-                """
             )
 
 # =========================================================
@@ -589,14 +493,13 @@ elif page == "🧠 AI Research Lab":
 
 elif page == "📊 Market Intelligence":
 
-    st.markdown("## 📊 Market Intelligence")
+    st.header("📊 Market Intelligence")
 
-    st.write(
-        "Overview of the simulated assets currently tracked by AUREX AI."
-    )
+    rows = []
 
-    market_df = pd.DataFrame(
-        [
+    for name, data in stocks.items():
+
+        rows.append(
             {
                 "Asset": name,
                 "Price": data["price"],
@@ -605,9 +508,9 @@ elif page == "📊 Market Intelligence":
                 "Sector": data["sector"],
                 "Market Cap": data["market_cap"]
             }
-            for name, data in stocks.items()
-        ]
-    )
+        )
+
+    market_df = pd.DataFrame(rows)
 
     st.dataframe(
         market_df,
@@ -615,28 +518,26 @@ elif page == "📊 Market Intelligence":
         hide_index=True
     )
 
-    st.markdown("### Market Overview")
-
     positive = sum(
-        1 for data in stocks.values()
-        if data["change"] > 0
+        data["change"] > 0
+        for data in stocks.values()
     )
 
     negative = len(stocks) - positive
 
-    c1, c2, c3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-    c1.metric(
+    col1.metric(
         "Positive Assets",
         positive
     )
 
-    c2.metric(
+    col2.metric(
         "Negative Assets",
         negative
     )
 
-    c3.metric(
+    col3.metric(
         "Total Assets",
         len(stocks)
     )
@@ -647,7 +548,7 @@ elif page == "📊 Market Intelligence":
 
 elif page == "📈 Technical Laboratory":
 
-    st.markdown("## 📈 Technical Laboratory")
+    st.header("📈 Technical Laboratory")
 
     selected = st.selectbox(
         "Select Asset",
@@ -657,8 +558,8 @@ elif page == "📈 Technical Laboratory":
     data = stocks[selected]
 
     df = generate_prices(
-        base_price=data["price"],
-        periods=180
+        data["price"],
+        180
     )
 
     (
@@ -669,7 +570,7 @@ elif page == "📈 Technical Laboratory":
         rsi,
         trend,
         momentum
-    ) = technical_analysis(df)
+    ) = calculate_indicators(df)
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -694,24 +595,26 @@ elif page == "📈 Technical Laboratory":
     )
 
     st.plotly_chart(
-        create_chart(
+        price_chart(
             processed,
-            f"{selected} — Technical Chart"
+            f"{selected} Price Chart"
         ),
         use_container_width=True
     )
 
-    st.markdown("### Technical Interpretation")
+    st.subheader("Technical Interpretation")
 
     st.write(
-        f"""
-        **Trend:** {trend}
+        f"Trend: {trend}"
+    )
 
-        **Momentum:** {momentum}
+    st.write(
+        f"Momentum: {momentum}"
+    )
 
-        The moving-average relationship and RSI are simplified
-        indicators used for educational research.
-        """
+    st.write(
+        "These indicators are simplified research tools and should "
+        "not be treated as guaranteed trading signals."
     )
 
 # =========================================================
@@ -720,29 +623,25 @@ elif page == "📈 Technical Laboratory":
 
 elif page == "💼 Portfolio Intelligence":
 
-    st.markdown("## 💼 Portfolio Intelligence")
+    st.header("💼 Portfolio Intelligence")
 
     st.write(
-        "Build a simple demo portfolio and examine its allocation."
+        "Create a simple demo portfolio."
     )
 
-    portfolio = {}
+    allocation = {}
 
-    for stock in stocks:
+    for name in stocks:
 
-        weight = st.slider(
-            f"{stock} allocation (%)",
-            min_value=0,
-            max_value=100,
-            value=25,
-            step=5
+        allocation[name] = st.slider(
+            name + " allocation (%)",
+            0,
+            100,
+            25,
+            5
         )
 
-        portfolio[stock] = weight
-
-    total = sum(portfolio.values())
-
-    st.markdown("---")
+    total = sum(allocation.values())
 
     st.metric(
         "Total Allocation",
@@ -751,12 +650,14 @@ elif page == "💼 Portfolio Intelligence":
 
     if total == 100:
 
-        st.success("Portfolio allocation is balanced to 100%.")
+        st.success(
+            "Portfolio allocation equals 100%."
+        )
 
         portfolio_df = pd.DataFrame(
             {
-                "Asset": list(portfolio.keys()),
-                "Allocation": list(portfolio.values())
+                "Asset": list(allocation.keys()),
+                "Allocation": list(allocation.values())
             }
         )
 
@@ -783,7 +684,7 @@ elif page == "💼 Portfolio Intelligence":
     else:
 
         st.warning(
-            "Adjust the allocations so the total equals 100%."
+            "Make the total allocation exactly 100%."
         )
 
 # =========================================================
@@ -792,22 +693,22 @@ elif page == "💼 Portfolio Intelligence":
 
 elif page == "🧪 Strategy Laboratory":
 
-    st.markdown("## 🧪 Strategy Laboratory")
+    st.header("🧪 Strategy Laboratory")
 
     st.write(
-        "Test a simple historical strategy using simulated data."
+        "Test a simple moving-average strategy using simulated historical data."
     )
 
     selected = st.selectbox(
-        "Asset",
+        "Select Asset",
         list(stocks.keys())
     )
 
     data = stocks[selected]
 
     df = generate_prices(
-        base_price=data["price"],
-        periods=250
+        data["price"],
+        250
     )
 
     df["MA20"] = df["Price"].rolling(20).mean()
@@ -877,7 +778,7 @@ elif page == "🧪 Strategy Laboratory":
     fig.update_layout(
         title="Strategy Simulation",
         template="plotly_dark",
-        height=480
+        height=450
     )
 
     st.plotly_chart(
@@ -896,7 +797,7 @@ elif page == "🧪 Strategy Laboratory":
 
 elif page == "⚠️ Risk Observatory":
 
-    st.markdown("## ⚠️ Risk Observatory")
+    st.header("⚠️ Risk Observatory")
 
     selected = st.selectbox(
         "Select Asset",
@@ -906,13 +807,17 @@ elif page == "⚠️ Risk Observatory":
     data = stocks[selected]
 
     df = generate_prices(
-        base_price=data["price"],
-        periods=250
+        data["price"],
+        250
     )
 
     daily_returns = df["Price"].pct_change().dropna()
 
-    volatility = daily_returns.std() * np.sqrt(252) * 100
+    volatility = (
+        daily_returns.std() *
+        np.sqrt(252) *
+        100
+    )
 
     running_max = df["Price"].cummax()
 
@@ -940,4 +845,130 @@ elif page == "⚠️ Risk Observatory":
         f"{data['volume']:,}"
     )
 
-    st.markdown("### Risk Fact
+    st.subheader("Risk Factors")
+
+    st.write(
+        "• Price volatility"
+    )
+
+    st.write(
+        "• Maximum drawdown"
+    )
+
+    st.write(
+        "• Liquidity"
+    )
+
+    st.write(
+        "• Sector concentration"
+    )
+
+    st.write(
+        "• Market conditions"
+    )
+
+    st.write(
+        "• Strategy dependence"
+    )
+
+    st.write(
+        "• Limitations of historical data"
+    )
+
+# =========================================================
+# INVESTMENT DNA
+# =========================================================
+
+elif page == "🔬 Investment DNA":
+
+    st.header("🔬 Investment DNA")
+
+    selected = st.selectbox(
+        "Select Asset",
+        list(stocks.keys())
+    )
+
+    data = stocks[selected]
+
+    if data["change"] > 3:
+        momentum = "High Momentum"
+    elif data["change"] > 0:
+        momentum = "Positive Momentum"
+    else:
+        momentum = "Weak Momentum"
+
+    if data["sector"] == "Technology":
+        style = "Growth / Innovation"
+    elif data["sector"] == "Banking":
+        style = "Financial / Value"
+    elif data["sector"] == "Energy":
+        style = "Cyclical / Commodity"
+    else:
+        style = "Mixed"
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Momentum",
+        momentum
+    )
+
+    col2.metric(
+        "Sector",
+        data["sector"]
+    )
+
+    col3.metric(
+        "Style",
+        style
+    )
+
+    st.subheader("Asset Profile")
+
+    st.write(
+        f"Asset: {selected}"
+    )
+
+    st.write(
+        f"Price: ₹{data['price']:.2f}"
+    )
+
+    st.write(
+        f"Daily Change: {data['change']:.2f}%"
+    )
+
+    st.write(
+        f"Sector: {data['sector']}"
+    )
+
+    st.write(
+        f"Market Cap: {data['market_cap']}"
+    )
+
+    st.write(
+        f"Volume: {data['volume']:,}"
+    )
+
+    st.write(
+        f"Momentum Profile: {momentum}"
+    )
+
+    st.write(
+        f"Investment Style: {style}"
+    )
+
+# =========================================================
+# FOOTER
+# =========================================================
+
+st.markdown(
+    """
+    <div class="footer">
+    <b>◈ AUREX AI</b><br><br>
+    Autonomous Universal Research & EXecution Intelligence<br><br>
+    Created & Developed by <b>Anshuman Dash</b><br><br>
+    Prototype investment research platform • Demo data • Not financial advice
+    </div>
+    """,
+    unsafe_allow_html=True
+)
